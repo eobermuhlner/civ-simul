@@ -15,5 +15,6 @@ out
 # IntelliJ IDEA stuff
 
 *.iml
+*.iws
 .idea
 
