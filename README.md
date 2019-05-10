@@ -1,3 +1,3 @@
 # civ-simul
 
-Simple simulation of a complex civilisation.
+Simple simulation of a complex civilization.
