@@ -7,13 +7,16 @@ fun main(args: Array<String>) {
 
 private fun simulateTrivialWorld() {
     val world = World()
-
     val region = world.createRegion("region")
+    val country = world.createCountry("country")
+    country.regions += region
+
+    country.taxAgriculture = 0.1
 
     val simulation = Simulation()
 
-    for (i in 1..5) {
-        println(region)
+    for (i in 1..20) {
+        println(country)
         simulation.simulate(world)
     }
 }

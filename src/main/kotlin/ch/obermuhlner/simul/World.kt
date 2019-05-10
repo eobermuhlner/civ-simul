@@ -1,22 +1,32 @@
 package ch.obermuhlner.simul
 
-import kotlin.math.max
+import kotlin.math.min
 
 data class Region(
     val id: Int,
     val name: String,
-    var agriculture: Double = 30.0,
-    var population: Double = 10.0)
+    var agriculture: Double = 20.0,
+    var population: Double = 10.0,
+
+    var agricultureProduce: Double = 20.0)
 
 
 data class RegionConnection(
     val to: Region)
 
 
+data class Country(
+    val id: Int,
+    val name: String,
+    var taxAgriculture: Double = 0.1,
+    var agricultureProduce: Double = 0.0,
+    val regions: MutableList<Region> = mutableListOf())
+
+
 class World {
     val regions: MutableList<Region> = arrayListOf()
-
     val regionConnections: MutableMap<Region, MutableList<RegionConnection>> = mutableMapOf()
+    val countries: MutableList<Country> = arrayListOf()
 
     fun createRegion(name: String): Region {
         val region = Region(regions.size, name)
@@ -28,22 +38,44 @@ class World {
         val connection = RegionConnection(to)
         regionConnections.computeIfAbsent(from) { mutableListOf() } += connection
     }
+
+    fun createCountry(name: String): Country {
+        val country = Country(regions.size, name)
+        countries += country
+        return country
+    }
 }
 
+
+
 class Simulation {
-    val populationGrowth = 0.01
+    val populationGrowth = 0.1
 
     fun simulate(world: World) {
         for (region in world.regions) {
-            region.population = growByToMax(region.population, max(region.population, region.agriculture), region.agriculture, populationGrowth)
+            region.agricultureProduce = min(region.population, region.agriculture)
+        }
+
+        for (country in world.countries) {
+            for (region in country.regions) {
+                val agricultureProduceTax = region.agricultureProduce * country.taxAgriculture
+                region.agricultureProduce -= agricultureProduceTax
+                country.agricultureProduce += agricultureProduceTax
+            }
+        }
+
+        for (region in world.regions) {
+            val agricultureProduceFood = region.agricultureProduce
+            region.population = growToMax(region.population, agricultureProduceFood, region.agriculture, populationGrowth)
+            region.agricultureProduce -= agricultureProduceFood
         }
     }
 
     private fun growToMax(value: Double, maxValue: Double, growthFactor: Double): Double {
-        return growByToMax(value, value, maxValue, growthFactor)
+        return growToMax(value, value, maxValue, growthFactor)
     }
 
-    private fun growByToMax(value: Double, growValue: Double, maxValue: Double, growthFactor: Double): Double {
+    private fun growToMax(value: Double, growValue: Double, maxValue: Double, growthFactor: Double): Double {
         val delta = growValue * growthFactor
         if (value + delta < maxValue) {
             return value + delta
