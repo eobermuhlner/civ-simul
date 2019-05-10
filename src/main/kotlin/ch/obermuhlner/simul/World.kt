@@ -53,22 +53,34 @@ class Simulation {
 
     fun simulate(world: World) {
         for (region in world.regions) {
-            region.agricultureProduce = min(region.population, region.agriculture)
+            simulateProduction(region)
         }
 
         for (country in world.countries) {
             for (region in country.regions) {
-                val agricultureProduceTax = region.agricultureProduce * country.taxAgriculture
-                region.agricultureProduce -= agricultureProduceTax
-                country.agricultureProduce += agricultureProduceTax
+                simulateTax(country, region)
             }
         }
 
         for (region in world.regions) {
-            val agricultureProduceFood = region.agricultureProduce
-            region.population = growToMax(region.population, agricultureProduceFood, region.agriculture, populationGrowth)
-            region.agricultureProduce -= agricultureProduceFood
+            simulatePopulation(region)
         }
+    }
+
+    private fun simulateProduction(region: Region) {
+        region.agricultureProduce = min(region.population, region.agriculture)
+    }
+
+    private fun simulateTax(country: Country, region: Region) {
+        val agricultureProduceTax = region.agricultureProduce * country.taxAgriculture
+        region.agricultureProduce -= agricultureProduceTax
+        country.agricultureProduce += agricultureProduceTax
+    }
+
+    private fun simulatePopulation(region: Region) {
+        val agricultureProduceFood = region.agricultureProduce
+        region.population = growToMax(region.population, agricultureProduceFood, region.agriculture, populationGrowth)
+        region.agricultureProduce -= agricultureProduceFood
     }
 
     private fun growToMax(value: Double, maxValue: Double, growthFactor: Double): Double {
