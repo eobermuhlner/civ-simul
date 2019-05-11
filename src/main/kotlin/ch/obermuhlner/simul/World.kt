@@ -8,7 +8,7 @@ data class Region(
     var agriculture: Double = 20.0,
     var population: Double = 10.0,
 
-    var agricultureProduce: Double = 20.0)
+    var agricultureProduce: Double = 0.0)
 
 
 data class RegionConnection(
@@ -24,9 +24,9 @@ data class Country(
 
 
 class World {
-    val regions: MutableList<Region> = arrayListOf()
+    val regions: MutableList<Region> = mutableListOf()
     val regionConnections: MutableMap<Region, MutableList<RegionConnection>> = mutableMapOf()
-    val countries: MutableList<Country> = arrayListOf()
+    val countries: MutableList<Country> = mutableListOf()
 
     fun createRegion(name: String): Region {
         val region = Region(regions.size, name)
@@ -36,7 +36,7 @@ class World {
 
     fun createRegionConnection(from: Region, to: Region) {
         val connection = RegionConnection(to)
-        regionConnections.computeIfAbsent(from) { mutableListOf() } += connection
+        regionConnections.getOrPut(from) { mutableListOf() } += connection
     }
 
     fun createCountry(name: String): Country {
