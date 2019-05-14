@@ -1,11 +1,14 @@
 package ch.obermuhlner.simul
 
 import kotlin.math.min
+import java.util.Random
+
 
 data class Region(
     val id: Int,
     val name: String,
     var agriculture: Double = 20.0,
+    var agriculturePerPopulation: Double = 1.2,
     var population: Double = 10.0,
 
     var agricultureProduce: Double = 0.0)
@@ -46,9 +49,36 @@ class World {
     }
 }
 
+interface Randomizer {
+    fun gaussian(value: Double, stdDeviation: Double = 0.1): Double
 
+    fun clampedGaussian(value: Double, stdDeviation: Double = 0.1, minValue: Double = 0.0, maxValue: Double = value * 2): Double {
+        val valueNew = gaussian(value, stdDeviation)
+        if (valueNew < minValue) {
+            return minValue
+        }
+        if (valueNew > maxValue) {
+            return maxValue
+        }
+        return valueNew
+    }
+}
 
-class Simulation {
+class NoRandomizer : Randomizer {
+    override fun gaussian(value: Double, stdDeviation: Double): Double {
+        return value
+    }
+}
+
+class RandomRandomizer : Randomizer {
+    val random : Random = Random()
+
+    override fun gaussian(value: Double, stdDeviation: Double): Double {
+        return random.nextGaussian() * stdDeviation * value + value
+    }
+}
+
+class Simulation(private val randomizer: Randomizer = RandomRandomizer()) {
     val populationGrowth = 0.1
 
     fun simulate(world: World) {
@@ -68,7 +98,7 @@ class Simulation {
     }
 
     private fun simulateProduction(region: Region) {
-        region.agricultureProduce = min(region.population, region.agriculture)
+        region.agricultureProduce = randomizer.clampedGaussian(min(region.population, region.agriculture) * region.agriculturePerPopulation)
     }
 
     private fun simulateTax(country: Country, region: Region) {

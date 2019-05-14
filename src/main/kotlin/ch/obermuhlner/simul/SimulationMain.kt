@@ -13,7 +13,7 @@ private fun simulateTrivialWorld() {
 
     country.taxAgriculture = 0.1
 
-    val simulation = Simulation()
+    val simulation = Simulation(NoRandomizer())
 
     for (i in 1..20) {
         println(country)
