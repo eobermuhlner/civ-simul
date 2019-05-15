@@ -80,6 +80,8 @@ class RandomRandomizer : Randomizer {
 
 class Simulation(private val randomizer: Randomizer = RandomRandomizer()) {
     val populationStarvationRate = 0.8
+    val populationGrowthRate = 0.5
+
     var ticks = 0
 
     fun simulate(world: World) {
@@ -112,32 +114,34 @@ class Simulation(private val randomizer: Randomizer = RandomRandomizer()) {
     }
 
     private fun simulatePopulation(region: Region) {
-        val agricultureProduceFood = region.agricultureProduce
-        var populationGrowth = min(agricultureProduceFood - region.population, region.agriculture - region.population)
-        if (populationGrowth < 0) {
-            populationGrowth *= populationStarvationRate
-        } else if (populationGrowth > 0) {
-            val populationGrowthFactor = (region.agriculture - region.population - populationGrowth / 2) / (region.agriculture - region.population)
-            populationGrowth *= populationGrowthFactor
-        }
+        region.population += limitedGrowth(region.population, region.agricultureProduce, region.agriculture, populationStarvationRate, populationGrowthRate)
+        region.population = clampMin(region.population)
 
-        region.population += populationGrowth
-        if (region.population < 0) {
-            region.population = 0.0
-        }
         region.agricultureProduce -= region.population
-        if (region.agricultureProduce < 0) {
-            region.agricultureProduce = 0.0
+        region.agricultureProduce = clampMin(region.agricultureProduce)
+    }
+
+    private fun limitedGrowth(value: Double, growthValue: Double, maxValue: Double, shrinkFactor: Double = 0.8, growthFactor: Double = 0.5): Double {
+        val populationGrowth = min(growthValue - value, maxValue - value)
+        return when {
+            populationGrowth < 0 -> populationGrowth * shrinkFactor
+            populationGrowth > 0 -> populationGrowth * (maxValue - value - populationGrowth * growthFactor) / (maxValue - value)
+            else -> populationGrowth
+        }
+    }
+
+    private fun clampMin(value: Double, minValue: Double = 0.0): Double {
+        return when {
+            value < minValue -> minValue
+            else -> value
         }
     }
 
     private fun clamp(value: Double, minValue: Double, maxValue: Double): Double {
-        if (value < minValue) {
-            return minValue
-        } else if (value > maxValue) {
-            return maxValue
-        } else {
-            return value
+        return when {
+            value < minValue -> minValue
+            value > maxValue -> maxValue
+            else -> value
         }
     }
 }
