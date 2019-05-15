@@ -8,15 +8,17 @@ fun main(args: Array<String>) {
 private fun simulateTrivialWorld() {
     val world = World()
     val region = world.createRegion("region")
+    region.population = 10.0
+    region.agriculture = 20.0
+
     val country = world.createCountry("country")
     country.regions += region
-
     country.taxAgriculture = 0.1
 
     val simulation = Simulation(NoRandomizer())
 
     for (i in 1..20) {
-        println(country)
+        println("country.agri=${country.agricultureProduce} pop=${region.population} agri=${region.agricultureProduce}")
         simulation.simulate(world)
     }
 }

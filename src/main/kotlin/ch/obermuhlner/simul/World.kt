@@ -79,9 +79,12 @@ class RandomRandomizer : Randomizer {
 }
 
 class Simulation(private val randomizer: Randomizer = RandomRandomizer()) {
-    val populationGrowth = 0.1
+    val populationStarvationRate = 0.8
+    var ticks = 0
 
     fun simulate(world: World) {
+        ticks++
+
         for (region in world.regions) {
             simulateProduction(region)
         }
@@ -98,7 +101,8 @@ class Simulation(private val randomizer: Randomizer = RandomRandomizer()) {
     }
 
     private fun simulateProduction(region: Region) {
-        region.agricultureProduce = randomizer.clampedGaussian(min(region.population, region.agriculture) * region.agriculturePerPopulation)
+        region.agricultureProduce = randomizer.clampedGaussian(
+                min(region.population, region.agriculture) * region.agriculturePerPopulation)
     }
 
     private fun simulateTax(country: Country, region: Region) {
@@ -109,20 +113,31 @@ class Simulation(private val randomizer: Randomizer = RandomRandomizer()) {
 
     private fun simulatePopulation(region: Region) {
         val agricultureProduceFood = region.agricultureProduce
-        region.population = growToMax(region.population, agricultureProduceFood, region.agriculture, populationGrowth)
-        region.agricultureProduce -= agricultureProduceFood
+        var populationGrowth = min(agricultureProduceFood - region.population, region.agriculture - region.population)
+        if (populationGrowth < 0) {
+            populationGrowth *= populationStarvationRate
+        } else if (populationGrowth > 0) {
+            val populationGrowthFactor = (region.agriculture - region.population - populationGrowth / 2) / (region.agriculture - region.population)
+            populationGrowth *= populationGrowthFactor
+        }
+
+        region.population += populationGrowth
+        if (region.population < 0) {
+            region.population = 0.0
+        }
+        region.agricultureProduce -= region.population
+        if (region.agricultureProduce < 0) {
+            region.agricultureProduce = 0.0
+        }
     }
 
-    private fun growToMax(value: Double, maxValue: Double, growthFactor: Double): Double {
-        return growToMax(value, value, maxValue, growthFactor)
-    }
-
-    private fun growToMax(value: Double, growValue: Double, maxValue: Double, growthFactor: Double): Double {
-        val delta = growValue * growthFactor
-        if (value + delta < maxValue) {
-            return value + delta
-        } else {
+    private fun clamp(value: Double, minValue: Double, maxValue: Double): Double {
+        if (value < minValue) {
+            return minValue
+        } else if (value > maxValue) {
             return maxValue
+        } else {
+            return value
         }
     }
 }
