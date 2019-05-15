@@ -15,10 +15,11 @@ private fun simulateTrivialWorld() {
     country.regions += region
     country.taxAgriculture = 0.1
 
-    val simulation = Simulation(NoRandomizer())
+    val simulation = Simulation(RandomRandomizer(), 0.8, 0.8)
 
     for (i in 1..20) {
-        println("country.agri=${country.agricultureProduce} pop=${region.population} agri=${region.agricultureProduce}")
+        //println("country.agri=${country.agricultureStorage} pop=${region.population} agri=${region.agricultureStorage}")
+        println(country)
         simulation.simulate(world)
     }
 }

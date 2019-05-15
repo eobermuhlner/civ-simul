@@ -7,11 +7,12 @@ import java.util.Random
 data class Region(
     val id: Int,
     val name: String,
-    var agriculture: Double = 20.0,
+    var agriculture: Double = 100.0,
     var agriculturePerPopulation: Double = 1.2,
     var population: Double = 10.0,
 
-    var agricultureProduce: Double = 0.0)
+    var agricultureProduce: Double = 0.0,
+    var agricultureStorage: Double = 0.0)
 
 
 data class RegionConnection(
@@ -19,11 +20,11 @@ data class RegionConnection(
 
 
 data class Country(
-    val id: Int,
-    val name: String,
-    var taxAgriculture: Double = 0.1,
-    var agricultureProduce: Double = 0.0,
-    val regions: MutableList<Region> = mutableListOf())
+        val id: Int,
+        val name: String,
+        var taxAgriculture: Double = 0.1,
+        var agricultureStorage: Double = 0.0,
+        val regions: MutableList<Region> = mutableListOf())
 
 
 class World {
@@ -51,17 +52,6 @@ class World {
 
 interface Randomizer {
     fun gaussian(value: Double, stdDeviation: Double = 0.1): Double
-
-    fun clampedGaussian(value: Double, stdDeviation: Double = 0.1, minValue: Double = 0.0, maxValue: Double = value * 2): Double {
-        val valueNew = gaussian(value, stdDeviation)
-        if (valueNew < minValue) {
-            return minValue
-        }
-        if (valueNew > maxValue) {
-            return maxValue
-        }
-        return valueNew
-    }
 }
 
 class NoRandomizer : Randomizer {
@@ -78,9 +68,9 @@ class RandomRandomizer : Randomizer {
     }
 }
 
-class Simulation(private val randomizer: Randomizer = RandomRandomizer()) {
-    val populationStarvationRate = 0.8
-    val populationGrowthRate = 0.5
+class Simulation(private val randomizer: Randomizer = RandomRandomizer(),
+                 val populationStarvationRate: Double = 0.9,
+                 val populationGrowthRate: Double = 0.9) {
 
     var ticks = 0
 
@@ -103,31 +93,33 @@ class Simulation(private val randomizer: Randomizer = RandomRandomizer()) {
     }
 
     private fun simulateProduction(region: Region) {
-        region.agricultureProduce = randomizer.clampedGaussian(
-                min(region.population, region.agriculture) * region.agriculturePerPopulation)
+        region.agricultureProduce = clampMin(randomizer.gaussian(min(region.population, region.agriculture) * region.agriculturePerPopulation))
     }
 
     private fun simulateTax(country: Country, region: Region) {
         val agricultureProduceTax = region.agricultureProduce * country.taxAgriculture
         region.agricultureProduce -= agricultureProduceTax
-        country.agricultureProduce += agricultureProduceTax
+        country.agricultureStorage += agricultureProduceTax
+
+        region.agricultureStorage += region.agricultureProduce
+        region.agricultureProduce = 0.0
     }
 
     private fun simulatePopulation(region: Region) {
-        region.population += limitedGrowth(region.population, region.agricultureProduce, region.agriculture, populationStarvationRate, populationGrowthRate)
-        region.population = clampMin(region.population)
+        region.population = clampMin(limitedGrowth(region.population, region.agricultureStorage, region.agriculture, populationStarvationRate, populationGrowthRate))
 
-        region.agricultureProduce -= region.population
-        region.agricultureProduce = clampMin(region.agricultureProduce)
+        region.agricultureStorage = clampMin(region.agricultureStorage - region.population)
     }
 
-    private fun limitedGrowth(value: Double, growthValue: Double, maxValue: Double, shrinkFactor: Double = 0.8, growthFactor: Double = 0.5): Double {
-        val populationGrowth = min(growthValue - value, maxValue - value)
-        return when {
-            populationGrowth < 0 -> populationGrowth * shrinkFactor
-            populationGrowth > 0 -> populationGrowth * (maxValue - value - populationGrowth * growthFactor) / (maxValue - value)
-            else -> populationGrowth
+    private fun limitedGrowth(oldValue: Double, newValue: Double, maxValue: Double, shrinkFactor: Double, growthFactor: Double): Double {
+        val internalGrowthFactor = 0.5
+        val growth = min(newValue - oldValue, maxValue - oldValue)
+        val correctedGrowth = when {
+            growth < 0 -> growth * shrinkFactor
+            growth > 0 -> growth * growthFactor * (maxValue - oldValue - growth * internalGrowthFactor) / (maxValue - oldValue)
+            else -> 0.0
         }
+        return oldValue + correctedGrowth
     }
 
     private fun clampMin(value: Double, minValue: Double = 0.0): Double {
