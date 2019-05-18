@@ -15,7 +15,7 @@ private fun simulateTrivialWorld() {
     country.regions += region
     country.taxAgriculture = 0.1
 
-    val simulation = Simulation(RandomRandomizer(), 0.8, 0.8)
+    val simulation = SimulationLoader().load()
 
     for (i in 1..20) {
         //println("country.agri=${country.agricultureStorage} pop=${region.population} agri=${region.agricultureStorage}")
@@ -44,6 +44,19 @@ private fun simulateSimpleWorld() {
     world.createRegionConnection(regionSE, regionNE)
     world.createRegionConnection(regionSE, regionSW)
 
-    println(regionNW)
-    println(world.regionConnections[regionNW])
+    regionNW.population = 10.0
+    regionNW.agriculture = 100.0
+
+
+    val country = world.createCountry("country")
+    country.regions += regionNW
+    country.taxAgriculture = 0.1
+
+    val simulation = SimulationLoader().load()
+
+    for (i in 1..20) {
+        println(country)
+        println(regionNE)
+        simulation.simulate(world)
+    }
 }
