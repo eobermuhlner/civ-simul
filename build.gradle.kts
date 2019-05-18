@@ -13,6 +13,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+    implementation("no.tornado:tornadofx:1.7.19")
 }
 
 tasks.withType<KotlinCompile> {
