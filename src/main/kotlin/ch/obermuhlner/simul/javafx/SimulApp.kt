@@ -1,16 +1,17 @@
 package ch.obermuhlner.simul.javafx
 
 import ch.obermuhlner.simul.*
-import javafx.beans.property.SimpleDoubleProperty
-import javafx.collections.FXCollections
-import javafx.collections.ObservableList
+import javafx.util.converter.DoubleStringConverter
 import tornadofx.*
 
 class SimulView : View() {
     val controller: SimulController by inject()
-    val countryAgricultureStorage = SimpleDoubleProperty()
-    val regionPopulation = SimpleDoubleProperty()
-    val regionAgricultureStorage = SimpleDoubleProperty()
+
+    val countryTaxAcriculture = observable(controller.country, Country::taxAgriculture)
+    val countryAgricultureStorage = observable(controller.country, Country::agricultureStorage::get, Country::agricultureStorage::set)
+
+    val regionPopulation = observable(controller.region, Region::population::get, Region::population::set)
+    val regionAgricultureStorage = observable(controller.region, Region::agricultureStorage::get, Region::agricultureStorage::set)
 
     override val root = borderpane {
         top = hbox {
@@ -19,17 +20,31 @@ class SimulView : View() {
                     runAsync {
                         controller.simulate()
                     } ui {
-                        updateProperties()
+                        countryAgricultureStorage.refresh()
+
+                        regionPopulation.refresh()
+                        regionAgricultureStorage.refresh()
                     }
                 }
             }
         }
         center = borderpane {
-            left = listview(controller.countries)
-            center = listview(controller.regions)
+            left = listview(controller.world.countries.asObservable()) {
+                cellFormat {
+                    text = item.name
+                }
+            }
+            center = listview(controller.world.regions.asObservable()) {
+                cellFormat {
+                    text = item.name
+                }
+            }
         }
         right = form {
             fieldset("Country") {
+                field ("Tax") {
+                    textfield(countryTaxAcriculture, DoubleStringConverter())
+                }
                 field("Agriculture Storage") {
                     label(countryAgricultureStorage)
                 }
@@ -44,33 +59,23 @@ class SimulView : View() {
             }
         }
     }
-
-    fun updateProperties() {
-        countryAgricultureStorage.value = controller.countries[0].agricultureStorage
-        regionPopulation.value = controller.regions[0].population
-        regionAgricultureStorage.value = controller.regions[0].agricultureStorage
-    }
 }
 
 class SimulController : Controller() {
-    val world: World
+    val world: World = World()
+    val country: Country
+    val region: Region
+
     val simulation: Simulation = SimulationLoader().load()
 
-    val countries: ObservableList<Country>
-    val regions: ObservableList<Region>
-
     init {
-        world = World()
-        val region = world.createRegion("region")
+        region = world.createRegion("Toledo")
         region.population = 10.0
         region.agriculture = 20.0
 
-        val country = world.createCountry("country")
+        country = world.createCountry("Castile")
         country.regions += region
         country.taxAgriculture = 0.1
-
-        countries = FXCollections.observableList(world.countries)
-        regions = FXCollections.observableList(world.regions)
     }
 
     fun simulate() {
