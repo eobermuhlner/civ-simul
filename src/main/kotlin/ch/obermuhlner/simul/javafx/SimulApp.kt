@@ -7,11 +7,11 @@ import tornadofx.*
 class SimulView : View() {
     val controller: SimulController by inject()
 
-    val countryTaxAcriculture = observable(controller.country, Country::taxAgriculture)
-    val countryAgricultureStorage = observable(controller.country, Country::agricultureStorage::get, Country::agricultureStorage::set)
+    val countryModel = CountryModel(controller.world.countries[0])
+    val regionModel = RegionModel(controller.world.countries[0].regions[0])
 
-    val regionPopulation = observable(controller.region, Region::population::get, Region::population::set)
-    val regionAgricultureStorage = observable(controller.region, Region::agricultureStorage::get, Region::agricultureStorage::set)
+    val countries = controller.world.countries.asObservable()
+    val regions = mutableListOf<Region>().asObservable()
 
     override val root = borderpane {
         top = hbox {
@@ -20,62 +20,108 @@ class SimulView : View() {
                     runAsync {
                         controller.simulate()
                     } ui {
-                        countryAgricultureStorage.refresh()
-
-                        regionPopulation.refresh()
-                        regionAgricultureStorage.refresh()
+                        countryModel.rollback()
+                        regionModel.rollback()
                     }
                 }
             }
         }
         center = borderpane {
-            left = listview(controller.world.countries.asObservable()) {
+            left = listview(countries) {
                 cellFormat {
                     text = item.name
                 }
+
+                selectionModel.selectedItemProperty().addListener { _, _, newCountry ->
+                    regions.clear()
+                    regions.addAll(newCountry.regions)
+                }
+                countryModel.rebindOnChange(this) {
+                    item = it
+                }
+                selectionModel.select(countries[0])
             }
-            center = listview(controller.world.regions.asObservable()) {
+            center = listview(regions) {
                 cellFormat {
                     text = item.name
+                }
+
+                regionModel.rebindOnChange(this) {
+                    item = it
                 }
             }
         }
         right = form {
             fieldset("Country") {
+                field ("Name") {
+                    label(countryModel.name)
+                }
                 field ("Tax") {
-                    textfield(countryTaxAcriculture, DoubleStringConverter())
+                    textfield(countryModel.taxAcriculture, DoubleStringConverter())
                 }
                 field("Agriculture Storage") {
-                    label(countryAgricultureStorage)
+                    label(countryModel.agricultureStorage)
                 }
             }
             fieldset("Region") {
+                field ("Name") {
+                    label(regionModel.name)
+                }
                 field("Population") {
-                    label(regionPopulation)
+                    label(regionModel.population)
                 }
                 field("Agriculture Storage") {
-                    label(regionAgricultureStorage)
+                    label(regionModel.agricultureStorage)
                 }
             }
         }
     }
 }
 
+class CountryModel(country: Country) : ItemViewModel<Country>(country) {
+    var name = bind(Country::name)
+    var taxAcriculture = bind(Country::taxAgriculture)
+    var agricultureStorage = bind(Country::agricultureStorage)
+}
+
+class RegionModel(region: Region) : ItemViewModel<Region>(region) {
+    var name = bind(Region::name)
+    var population = bind (Region::population)
+    var agricultureStorage = bind(Region::agricultureStorage)
+}
+
 class SimulController : Controller() {
     val world: World = World()
-    val country: Country
-    val region: Region
 
     val simulation: Simulation = SimulationLoader().load()
 
     init {
-        region = world.createRegion("Toledo")
-        region.population = 10.0
-        region.agriculture = 20.0
-
-        country = world.createCountry("Castile")
-        country.regions += region
-        country.taxAgriculture = 0.1
+        with (world.createCountry("Castile")) {
+            addRegion(with (world.createRegion("Toledo")) {
+                population = 10.0
+                agriculture = 20.0
+                this
+            })
+            addRegion(with (world.createRegion("Sevilla")) {
+                population = 10.0
+                agriculture = 30.0
+                this
+            })
+            taxAgriculture = 0.1
+        }
+        with (world.createCountry("Portugal")) {
+            addRegion(with (world.createRegion("Lisbon")) {
+                population = 10.0
+                agriculture = 30.0
+                this
+            })
+            addRegion(with (world.createRegion("Algarve")) {
+                population = 10.0
+                agriculture = 20.0
+                this
+            })
+            taxAgriculture = 0.1
+        }
     }
 
     fun simulate() {

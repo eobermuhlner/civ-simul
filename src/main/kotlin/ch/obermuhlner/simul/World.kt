@@ -7,6 +7,8 @@ import java.util.Random
 data class Region(
         val id: Int,
         val name: String,
+        var country: Country?,
+
         var agriculture: Double = 100.0,
         var agriculturePerPopulation: Double = 1.2,
         var population: Double = 0.0,
@@ -33,7 +35,18 @@ data class Country(
         val name: String,
         var taxAgriculture: Double = 0.1,
         var agricultureStorage: Double = 0.0,
-        val regions: MutableList<Region> = mutableListOf())
+        val regions: MutableList<Region> = mutableListOf()) {
+
+    fun addRegion(region: Region) {
+        regions += region
+        region.country = this
+    }
+
+    fun removeRegion(region: Region) {
+        regions -= region
+        region.country = null
+    }
+}
 
 
 class World {
@@ -43,7 +56,7 @@ class World {
     val countries: MutableList<Country> = mutableListOf()
 
     fun createRegion(name: String): Region {
-        val region = Region(regions.size, name)
+        val region = Region(regions.size, name, null)
         regions += region
         return region
     }

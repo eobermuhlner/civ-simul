@@ -12,7 +12,7 @@ private fun simulateTrivialWorld() {
     region.agriculture = 20.0
 
     val country = world.createCountry("country")
-    country.regions += region
+    country.addRegion(region)
     country.taxAgriculture = 0.1
 
     val simulation = SimulationLoader().load()
@@ -49,7 +49,7 @@ private fun simulateSimpleWorld() {
 
 
     val country = world.createCountry("country")
-    country.regions += regionNW
+    country.addRegion(regionNW)
     country.taxAgriculture = 0.1
 
     val simulation = SimulationLoader().load()
