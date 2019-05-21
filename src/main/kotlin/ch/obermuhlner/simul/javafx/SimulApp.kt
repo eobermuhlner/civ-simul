@@ -5,13 +5,13 @@ import javafx.util.converter.DoubleStringConverter
 import tornadofx.*
 
 class SimulView : View() {
-    val controller: SimulController by inject()
+    private val controller: SimulController by inject()
 
-    val countryModel = CountryModel(controller.world.countries[0])
-    val regionModel = RegionModel(controller.world.countries[0].regions[0])
+    private val countryModel = CountryModel(controller.world.countries[0])
+    private val regionModel = RegionModel(controller.world.countries[0].regions[0])
 
-    val countries = controller.world.countries.asObservable()
-    val regions = mutableListOf<Region>().asObservable()
+    private val countries = controller.world.countries.asObservable()
+    private val regions = mutableListOf<Region>().asObservable()
 
     override val root = borderpane {
         top = hbox {
@@ -56,11 +56,14 @@ class SimulView : View() {
                 field ("Name") {
                     label(countryModel.name)
                 }
-                field ("Tax") {
+                field ("Agriculture Tax") {
                     textfield(countryModel.taxAcriculture, DoubleStringConverter())
                 }
-                field("Agriculture Storage") {
-                    label(countryModel.agricultureStorage)
+                field ("Manufacture Tax") {
+                    textfield(countryModel.taxManufacture, DoubleStringConverter())
+                }
+                field("Gold") {
+                    label(countryModel.gold)
                 }
             }
             fieldset("Region") {
@@ -70,8 +73,17 @@ class SimulView : View() {
                 field("Population") {
                     label(regionModel.population)
                 }
+                field("Agriculture Ratio") {
+                    textfield(regionModel.agricultureRatio, DoubleStringConverter())
+                }
                 field("Agriculture Storage") {
                     label(regionModel.agricultureStorage)
+                }
+                field("Gold") {
+                    label(regionModel.gold)
+                }
+                field("Luxury") {
+                    label(regionModel.luxury)
                 }
             }
         }
@@ -80,20 +92,24 @@ class SimulView : View() {
 
 class CountryModel(country: Country) : ItemViewModel<Country>(country) {
     var name = bind(Country::name)
-    var taxAcriculture = bind(Country::taxAgriculture)
-    var agricultureStorage = bind(Country::agricultureStorage)
+    var taxAcriculture = bind(Country::taxAgriculture, true)
+    var taxManufacture = bind(Country::taxManufacture, true)
+    var gold = bind(Country::gold)
 }
 
 class RegionModel(region: Region) : ItemViewModel<Region>(region) {
     var name = bind(Region::name)
     var population = bind (Region::population)
+    var agricultureRatio = bind(Region::agricultureRatio, true)
     var agricultureStorage = bind(Region::agricultureStorage)
+    var gold = bind(Region::gold)
+    var luxury = bind(Region::luxury)
 }
 
 class SimulController : Controller() {
     val world: World = World()
 
-    val simulation: Simulation = SimulationLoader().load()
+    private val simulation: Simulation = SimulationLoader().load()
 
     init {
         with (world.createCountry("Castile")) {
