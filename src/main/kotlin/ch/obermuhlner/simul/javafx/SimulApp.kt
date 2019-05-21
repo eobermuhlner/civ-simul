@@ -107,34 +107,32 @@ class RegionModel(region: Region) : ItemViewModel<Region>(region) {
 }
 
 class SimulController : Controller() {
-    val world: World = World()
-
-    private val simulation: Simulation = SimulationLoader().load()
-
-    init {
-        world.createCountry("Castile").apply {
-            addRegion(world.createRegion("Toledo").apply {
+    val world: World = World().apply {
+        createCountry("Castile").apply {
+            addRegion(createRegion("Toledo").apply {
                 population = 10.0
                 agriculture = 20.0
             })
-            addRegion(world.createRegion("Sevilla").apply {
+            addRegion(createRegion("Sevilla").apply {
                 population = 10.0
                 agriculture = 30.0
             })
             taxAgriculture = 0.1
         }
-        world.createCountry("Portugal").apply {
-            addRegion(world.createRegion("Lisbon").apply {
+        createCountry("Portugal").apply {
+            addRegion(createRegion("Lisbon").apply {
                 population = 10.0
                 agriculture = 30.0
             })
-            addRegion(world.createRegion("Algarve").apply {
+            addRegion(createRegion("Algarve").apply {
                 population = 10.0
                 agriculture = 20.0
             })
             taxAgriculture = 0.1
         }
     }
+
+    private val simulation: Simulation = SimulationLoader().load()
 
     fun simulate() {
         simulation.simulate(world)
