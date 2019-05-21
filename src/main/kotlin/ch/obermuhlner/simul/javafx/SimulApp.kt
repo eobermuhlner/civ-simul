@@ -112,29 +112,25 @@ class SimulController : Controller() {
     private val simulation: Simulation = SimulationLoader().load()
 
     init {
-        with (world.createCountry("Castile")) {
-            addRegion(with (world.createRegion("Toledo")) {
+        world.createCountry("Castile").apply {
+            addRegion(world.createRegion("Toledo").apply {
                 population = 10.0
                 agriculture = 20.0
-                this
             })
-            addRegion(with (world.createRegion("Sevilla")) {
+            addRegion(world.createRegion("Sevilla").apply {
                 population = 10.0
                 agriculture = 30.0
-                this
             })
             taxAgriculture = 0.1
         }
-        with (world.createCountry("Portugal")) {
-            addRegion(with (world.createRegion("Lisbon")) {
+        world.createCountry("Portugal").apply {
+            addRegion(world.createRegion("Lisbon").apply {
                 population = 10.0
                 agriculture = 30.0
-                this
             })
-            addRegion(with (world.createRegion("Algarve")) {
+            addRegion(world.createRegion("Algarve").apply {
                 population = 10.0
                 agriculture = 20.0
-                this
             })
             taxAgriculture = 0.1
         }
