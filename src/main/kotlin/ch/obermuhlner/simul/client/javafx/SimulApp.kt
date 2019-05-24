@@ -1,6 +1,11 @@
 package ch.obermuhlner.simul.client.javafx
 
-import ch.obermuhlner.simul.domain.*
+import ch.obermuhlner.simul.server.model.domain.Country
+import ch.obermuhlner.simul.server.model.domain.Region
+import ch.obermuhlner.simul.server.model.domain.World
+import ch.obermuhlner.simul.server.model.service.Simulation
+import ch.obermuhlner.simul.server.model.service.SimulationLoader
+import ch.obermuhlner.simul.server.model.service.WorldLoader
 import javafx.beans.property.ListProperty
 import javafx.util.converter.DoubleStringConverter
 import tornadofx.*

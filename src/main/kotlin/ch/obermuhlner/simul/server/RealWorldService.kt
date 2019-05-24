@@ -1,14 +1,18 @@
 package ch.obermuhlner.simul.server
 
-import ch.obermuhlner.simul.domain.*
-import ch.obermuhlner.simul.service.WorldService
+import ch.obermuhlner.simul.server.model.domain.World
+import ch.obermuhlner.simul.server.model.service.Simulation
+import ch.obermuhlner.simul.server.model.service.SimulationLoader
+import ch.obermuhlner.simul.server.model.service.WorldLoader
+import ch.obermuhlner.simul.shared.domain.*
+import ch.obermuhlner.simul.shared.service.WorldService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class WorldController(val simulation: Simulation = SimulationLoader().load(),
-                      val world: World = WorldLoader().load()) : WorldService {
+class RealWorldService(val simulation: Simulation = SimulationLoader().load(),
+                       val world: World = WorldLoader().load()) : WorldService {
 
     @GetMapping("/countries")
     override fun allCountries() : List<CountryDto> {
@@ -18,6 +22,7 @@ class WorldController(val simulation: Simulation = SimulationLoader().load(),
 
     @GetMapping("/country/{countryId}")
     override fun country(@PathVariable countryId: Int) : CountryDto? {
+        // TODO find first and then map
         return world.countries
                 .map { CountryDto(it) }
                 .find { it.id == countryId }
@@ -38,6 +43,7 @@ class WorldController(val simulation: Simulation = SimulationLoader().load(),
 
     @GetMapping("/region/{regionId}")
     override fun region(@PathVariable regionId: Int) : RegionDto? {
+        // TODO find first and then map
         return world.regions
                 .map { RegionDto(it) }
                 .find { it.id == regionId }

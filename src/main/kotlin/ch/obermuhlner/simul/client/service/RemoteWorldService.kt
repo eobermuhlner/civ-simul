@@ -1,8 +1,8 @@
 package ch.obermuhlner.simul.client.service
 
-import ch.obermuhlner.simul.domain.CountryDto
-import ch.obermuhlner.simul.domain.RegionDto
-import ch.obermuhlner.simul.service.WorldService
+import ch.obermuhlner.simul.shared.domain.CountryDto
+import ch.obermuhlner.simul.shared.domain.RegionDto
+import ch.obermuhlner.simul.shared.service.WorldService
 import com.github.kittinunf.fuel.*
 
 class RemoteWorldService : WorldService {

@@ -1,5 +1,6 @@
-package ch.obermuhlner.simul.domain
+package ch.obermuhlner.simul.shared.domain
 
+import ch.obermuhlner.simul.server.model.domain.Country
 import com.github.kittinunf.fuel.core.ResponseDeserializable
 import com.google.gson.Gson
 

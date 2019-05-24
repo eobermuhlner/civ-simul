@@ -1,7 +1,7 @@
-package ch.obermuhlner.simul.service
+package ch.obermuhlner.simul.shared.service
 
-import ch.obermuhlner.simul.domain.CountryDto
-import ch.obermuhlner.simul.domain.RegionDto
+import ch.obermuhlner.simul.shared.domain.CountryDto
+import ch.obermuhlner.simul.shared.domain.RegionDto
 
 interface WorldService {
     fun allCountries() : List<CountryDto>
