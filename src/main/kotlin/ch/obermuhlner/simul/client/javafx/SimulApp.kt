@@ -1,6 +1,7 @@
-package ch.obermuhlner.simul.javafx
+package ch.obermuhlner.simul.client.javafx
 
-import ch.obermuhlner.simul.*
+import ch.obermuhlner.simul.domain.*
+import javafx.beans.property.ListProperty
 import javafx.util.converter.DoubleStringConverter
 import tornadofx.*
 
@@ -65,6 +66,9 @@ class SimulView : View() {
                 field("Gold") {
                     label(countryModel.gold)
                 }
+                field("War") {
+                    listview(countryModel.countriesWar)
+                }
             }
             fieldset("Region") {
                 field ("Name") {
@@ -95,6 +99,7 @@ class CountryModel(country: Country) : ItemViewModel<Country>(country) {
     var taxAcriculture = bind(Country::taxAgriculture, true)
     var taxManufacture = bind(Country::taxManufacture, true)
     var gold = bind(Country::gold)
+    var countriesWar = bind(Country::countriesWar) as ListProperty<Country>
 }
 
 class RegionModel(region: Region) : ItemViewModel<Region>(region) {
@@ -107,30 +112,7 @@ class RegionModel(region: Region) : ItemViewModel<Region>(region) {
 }
 
 class SimulController : Controller() {
-    val world: World = World().apply {
-        createCountry("Castile").apply {
-            addRegion(createRegion("Toledo").apply {
-                population = 10.0
-                agriculture = 20.0
-            })
-            addRegion(createRegion("Sevilla").apply {
-                population = 10.0
-                agriculture = 30.0
-            })
-            taxAgriculture = 0.1
-        }
-        createCountry("Portugal").apply {
-            addRegion(createRegion("Lisbon").apply {
-                population = 10.0
-                agriculture = 30.0
-            })
-            addRegion(createRegion("Algarve").apply {
-                population = 10.0
-                agriculture = 20.0
-            })
-            taxAgriculture = 0.1
-        }
-    }
+    val world: World = WorldLoader().load()
 
     private val simulation: Simulation = SimulationLoader().load()
 

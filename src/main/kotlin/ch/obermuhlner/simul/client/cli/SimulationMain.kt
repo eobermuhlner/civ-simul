@@ -1,4 +1,7 @@
-package ch.obermuhlner.simul
+package ch.obermuhlner.simul.client.cli
+
+import ch.obermuhlner.simul.domain.SimulationLoader
+import ch.obermuhlner.simul.domain.World
 
 fun main(args: Array<String>) {
     simulateTrivialWorld()

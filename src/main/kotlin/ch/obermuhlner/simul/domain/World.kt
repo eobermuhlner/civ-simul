@@ -1,4 +1,4 @@
-package ch.obermuhlner.simul
+package ch.obermuhlner.simul.domain
 
 
 data class Region(
@@ -38,7 +38,9 @@ data class Country(
         var taxAgriculture: Double = 0.1,
         var taxManufacture: Double = 0.2,
         var gold: Double = 0.0,
-        val regions: MutableList<Region> = mutableListOf()) {
+        val regions: MutableList<Region> = mutableListOf(),
+        val countriesWar: MutableList<Country> = mutableListOf(),
+        val countriesAlly: MutableList<Country> = mutableListOf()) {
 
     fun addRegion(region: Region) {
         regions += region
@@ -52,11 +54,18 @@ data class Country(
 }
 
 
+sealed class Action
+
+class DeclareWarAction(val actor: Country, val other: Country) : Action()
+class ProposePeaceAction(val actor: Country, val other: Country) : Action()
+class AcceptPeaceAction(val actor: Country, val other: Country) : Action()
+
 class World {
     val regions: MutableList<Region> = mutableListOf()
     val regionConnections: MutableMap<Region, MutableList<RegionConnection>> = mutableMapOf()
     val regionPolygons: MutableMap<Region, Polygon> = mutableMapOf()
     val countries: MutableList<Country> = mutableListOf()
+    val actions: MutableList<Action> = mutableListOf()
 
     fun createRegion(name: String): Region {
         val region = Region(regions.size, name, null)

@@ -1,4 +1,4 @@
-package ch.obermuhlner.simul
+package ch.obermuhlner.simul.domain
 
 import java.util.*
 import kotlin.math.min
@@ -83,6 +83,30 @@ class Simulation(private val rules : List<Rule>) {
                 }
             }
         }
+
+        val actions = mutableListOf<Action>()
+        actions.addAll(world.actions)
+        world.actions.clear()
+        for (action in actions) {
+            executeAction(world, action)
+        }
+    }
+
+    private fun executeAction(world: World, action: Action) {
+        when(action) {
+            is DeclareWarAction -> {
+                action.actor.countriesWar += action.other
+                action.other.countriesWar += action.actor
+            }
+            is ProposePeaceAction -> {
+                // TODO if peace is acceptable
+                world.actions += AcceptPeaceAction(action.other, action.actor)
+            }
+            is AcceptPeaceAction -> {
+                action.actor.countriesWar -= action.other
+                action.other.countriesWar -= action.actor
+            }
+        }
     }
 }
 
@@ -114,7 +138,7 @@ class SimulationLoader {
                     region.agricultureStorage = clampMin(region.agricultureStorage - region.population)
                 },
                 RegionRule { region ->
-                    region.agricultureStorage *= ( 1.0 - clamp(randomizer.gaussian(agricultureStorageDecay)))
+                    region.agricultureStorage *= (1.0 - clamp(randomizer.gaussian(agricultureStorageDecay)))
                 },
                 // manufacture
                 RegionRule { region ->
@@ -132,10 +156,40 @@ class SimulationLoader {
                     val goldForLuxury = region.gold * goldToLuxury
                     region.gold -= goldForLuxury
                     region.luxury += goldForLuxury / region.population
-                    region.luxury *= ( 1.0 - luxuryDecay)
+                    region.luxury *= (1.0 - luxuryDecay)
                 }
         )
 
         return Simulation(rules)
+    }
+}
+
+
+class WorldLoader {
+    fun load(): World {
+        return World().apply {
+            createCountry("Castile").apply {
+                addRegion(createRegion("Toledo").apply {
+                    population = 10.0
+                    agriculture = 20.0
+                })
+                addRegion(createRegion("Sevilla").apply {
+                    population = 10.0
+                    agriculture = 30.0
+                })
+                taxAgriculture = 0.1
+            }
+            createCountry("Portugal").apply {
+                addRegion(createRegion("Lisbon").apply {
+                    population = 10.0
+                    agriculture = 30.0
+                })
+                addRegion(createRegion("Algarve").apply {
+                    population = 10.0
+                    agriculture = 20.0
+                })
+                taxAgriculture = 0.1
+            }
+        }
     }
 }

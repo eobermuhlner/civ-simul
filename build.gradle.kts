@@ -1,19 +1,32 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+
 plugins {
-    kotlin("jvm") version "1.3.21"
+    val kotlinVersion = "1.3.31"
+
+    kotlin("jvm") version kotlinVersion
+    id("org.jetbrains.kotlin.plugin.spring") version kotlinVersion
+    id("org.springframework.boot") version "2.1.2.RELEASE"
+    id("io.spring.dependency-management") version "1.0.6.RELEASE"
 }
 
-group = "obermuhlner.ch"
+
+group = "ch.obermuhlner"
 version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    maven(url = "https://jitpack.io") {
+        name = "jitpack"
+    }
 }
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("no.tornado:tornadofx:1.7.19")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("com.github.kittinunf.fuel:fuel:2.1.0")
+    implementation("com.github.kittinunf.fuel:fuel-gson:2.1.0")
 }
 
 tasks.withType<KotlinCompile> {
