@@ -27,6 +27,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.github.kittinunf.fuel:fuel:2.1.0")
     implementation("com.github.kittinunf.fuel:fuel-gson:2.1.0")
+    implementation("org.slf4j:slf4j-api:1.7.25")
 }
 
 tasks.withType<KotlinCompile> {

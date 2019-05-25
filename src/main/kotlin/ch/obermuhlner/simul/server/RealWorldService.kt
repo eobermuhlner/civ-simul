@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.*
 class RealWorldService(val simulator: Simulator = SimulationLoader().load(),
                        val worldModel: WorldModel = WorldLoader().load()) : WorldService {
 
-    @GetMapping("/countryModels")
+    @GetMapping("/countries")
     override fun allCountries() : List<Country> {
         return worldModel.countryModels
                 .map { Country(it) }
     }
 
-    @GetMapping("/countryModel/{countryId}")
+    @GetMapping("/country/{countryId}")
     override fun country(@PathVariable countryId: Int) : Country? {
         println("COUNTRY $countryId")
         // TODO find first and then map
@@ -27,14 +27,14 @@ class RealWorldService(val simulator: Simulator = SimulationLoader().load(),
                 .find { it.id == countryId }
     }
 
-    @GetMapping("/countryModel/{countryId}/regionModels")
+    @GetMapping("/country/{countryId}/regionModels")
     override fun countryRegions(@PathVariable countryId: Int) : List<Region> {
         return worldModel.regionModels
                 .filter { it.countryModel != null && it.countryModel?.id == countryId }
                 .map { Region(it) }
     }
 
-    @GetMapping("/regionModels")
+    @GetMapping("/region")
     override fun allRegions() : List<Region> {
         return worldModel.regionModels
                 .map { Region(it) }
