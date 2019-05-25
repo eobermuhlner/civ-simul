@@ -4,13 +4,29 @@ import ch.obermuhlner.simul.client.service.RemoteWorldService
 import ch.obermuhlner.simul.shared.domain.CountryDto
 import ch.obermuhlner.simul.shared.domain.RegionDto
 import ch.obermuhlner.simul.shared.service.WorldService
+import com.google.gson.Gson
 
 class Command(val name: String, val argumentCount: Int, val block: (WorldService, List<String>) -> Unit)
 
-class SimulClient {
-    private val worldService : WorldService = RemoteWorldService()
+enum class PrintFormat {
+    Simple,
+    Json,
+    Pretty
+}
+
+class SimulClient(val worldService : WorldService) {
+    private var printFormat = PrintFormat.Pretty
 
     private val commands: List<Command> = listOf(
+            Command("--pretty", 0) { _, _ ->
+                printFormat = PrintFormat.Pretty
+            },
+            Command("--json", 0) { _, _ ->
+                printFormat = PrintFormat.Json
+            },
+            Command("--simple", 0) { _, _ ->
+                printFormat = PrintFormat.Simple
+            },
             Command("help", 0) { _, _ ->
                 printHelp()
             },
@@ -70,11 +86,42 @@ class SimulClient {
     }
 
     private fun printCountry(country: CountryDto) {
-        println(country)
+        when (printFormat) {
+            PrintFormat.Pretty -> {
+                println("Country: ${country.name}")
+                println("    id: ${country.id}")
+                println("    taxAgriculture: ${country.taxAgriculture}")
+                println("    taxManufacture: ${country.taxManufacture}")
+                println("    gold: ${country.gold}")
+            }
+            PrintFormat.Json -> {
+                println(Gson().toJson(country))
+            }
+            PrintFormat.Simple -> {
+                println(country)
+            }
+        }
     }
 
     private fun printRegion(region: RegionDto) {
-        println(region)
+        when (printFormat) {
+            PrintFormat.Pretty -> {
+                println("Region: ${region.name}")
+                println("    id: ${region.id}")
+                println("    country: ${region.country}")
+                println("    population: ${region.population}")
+                println("    agricultureRatio: ${region.agricultureRatio}")
+                println("    agricultureStorag: ${region.agricultureStorage}")
+                println("    gold: ${region.gold}")
+                println("    luxury: ${region.luxury}")
+            }
+            PrintFormat.Json -> {
+                println(Gson().toJson(region))
+            }
+            PrintFormat.Simple -> {
+                println(region)
+            }
+        }
     }
 
     private fun printHelp() {
@@ -88,7 +135,7 @@ class SimulClient {
 
 
 fun main(args: Array<String>) {
-    SimulClient().execute(args)
+    SimulClient(RemoteWorldService()).execute(args)
 }
 
 
