@@ -57,27 +57,27 @@ class SimulClient {
         }
     }
 
-    fun printCountries(countries: List<CountryDto>) {
+    private fun printCountries(countries: List<CountryDto>) {
         for (country in countries) {
             printCountry(country)
         }
     }
 
-    fun printRegions(regions: List<RegionDto>) {
+    private fun printRegions(regions: List<RegionDto>) {
         for (region in regions) {
             printRegion(region)
         }
     }
 
-    fun printCountry(country: CountryDto) {
+    private fun printCountry(country: CountryDto) {
         println(country)
     }
 
-    fun printRegion(region: RegionDto) {
+    private fun printRegion(region: RegionDto) {
         println(region)
     }
 
-    fun printHelp() {
+    private fun printHelp() {
         for (command in commands) {
             println("COMMAND ${command.name}")
             println("Takes ${command.argumentCount} arguments.")
