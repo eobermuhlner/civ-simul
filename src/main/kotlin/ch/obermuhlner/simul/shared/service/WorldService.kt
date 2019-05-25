@@ -1,15 +1,19 @@
 package ch.obermuhlner.simul.shared.service
 
-import ch.obermuhlner.simul.shared.domain.CountryDto
-import ch.obermuhlner.simul.shared.domain.RegionDto
+import ch.obermuhlner.simul.shared.domain.*
 
 interface WorldService {
-    fun allCountries() : List<CountryDto>
-    fun country(id: Int) : CountryDto?
+    fun allCountries() : List<Country>
+    fun country(id: Int) : Country?
 
-    fun allRegions() : List<RegionDto>
-    fun countryRegions(countryId: Int) : List<RegionDto>
-    fun region(id: Int) : RegionDto?
+    fun allRegions() : List<Region>
+    fun countryRegions(countryId: Int) : List<Region>
+    fun region(id: Int) : Region?
 
-    fun simulate()
+    fun action(action: DeclareWarAction)
+    fun action(action: ProposePeaceAction)
+    fun action(action: AcceptPeaceAction)
+    fun action(action: TaxAgricultureAction)
+
+    fun simulate(): Simulation
 }

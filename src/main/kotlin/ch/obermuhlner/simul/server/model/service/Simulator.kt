@@ -1,6 +1,7 @@
 package ch.obermuhlner.simul.server.model.service
 
 import ch.obermuhlner.simul.server.model.domain.*
+import ch.obermuhlner.simul.shared.domain.*
 import java.util.*
 import kotlin.math.min
 
@@ -50,34 +51,34 @@ private fun clamp(value: Double, minValue: Double = 0.0, maxValue: Double = 1.0)
 
 sealed class Rule
 
-class CountryRule(val execute : (Country)->Unit) : Rule()
+class CountryRule(val execute : (CountryModel)->Unit) : Rule()
 
-class RegionRule(val execute : (Region)->Unit) : Rule()
+class RegionRule(val execute : (RegionModel)->Unit) : Rule()
 
-class CountryRegionRule(val execute : (Country, Region)->Unit) : Rule()
+class CountryRegionRule(val execute : (CountryModel, RegionModel)->Unit) : Rule()
 
-class Simulation(private val rules : List<Rule>) {
+class Simulator(private val rules : List<Rule>) {
 
     var ticks = 0
 
-    fun simulate(world: World) {
+    fun simulate(worldModel: WorldModel) {
         ticks++
 
         for (rule in rules) {
             when (rule) {
                 is CountryRule -> {
-                    for (country in world.countries) {
+                    for (country in worldModel.countryModels) {
                         rule.execute(country)
                     }
                 }
                 is RegionRule -> {
-                    for (region in world.regions) {
+                    for (region in worldModel.regionModels) {
                         rule.execute(region)
                     }
                 }
                 is CountryRegionRule -> {
-                    for (country in world.countries) {
-                        for (region in world.regions) {
+                    for (country in worldModel.countryModels) {
+                        for (region in worldModel.regionModels) {
                             rule.execute(country, region)
                         }
                     }
@@ -86,33 +87,41 @@ class Simulation(private val rules : List<Rule>) {
         }
 
         val actions = mutableListOf<Action>()
-        actions.addAll(world.actions)
-        world.actions.clear()
+        actions.addAll(worldModel.actions)
+        worldModel.actions.clear()
         for (action in actions) {
-            executeAction(world, action)
+            executeAction(worldModel, action)
         }
     }
 
-    private fun executeAction(world: World, action: Action) {
+    private fun executeAction(worldModel: WorldModel, action: Action) {
         when(action) {
             is DeclareWarAction -> {
-                action.actor.countriesWar += action.other
-                action.other.countriesWar += action.actor
+                val actor = worldModel.country(action.actorCountryId)
+                val other = worldModel.country(action.otherCountryId)
+                actor.countriesWar += other
+                other.countriesWar += actor
             }
             is ProposePeaceAction -> {
                 // TODO if peace is acceptable
-                world.actions += AcceptPeaceAction(action.other, action.actor)
+                worldModel.actions += AcceptPeaceAction(action.otherCountryId, action.actorCountryId)
             }
             is AcceptPeaceAction -> {
-                action.actor.countriesWar -= action.other
-                action.other.countriesWar -= action.actor
+                val actor = worldModel.country(action.actorCountryId)
+                val other = worldModel.country(action.otherCountryId)
+                actor.countriesWar -= other
+                other.countriesWar -= actor
+            }
+            is TaxAgricultureAction -> {
+                val country = worldModel.country(action.countryId)
+                country.taxAgriculture = action.taxAgriculture
             }
         }
     }
 }
 
 class SimulationLoader {
-    fun load(): Simulation {
+    fun load(): Simulator {
         val randomizer = RandomRandomizer()
 
         val agricultureStorageDecay = 0.1
@@ -161,14 +170,14 @@ class SimulationLoader {
                 }
         )
 
-        return Simulation(rules)
+        return Simulator(rules)
     }
 }
 
 
 class WorldLoader {
-    fun load(): World {
-        return World().apply {
+    fun load(): WorldModel {
+        return WorldModel().apply {
             createCountry("Castile").apply {
                 addRegion(createRegion("Toledo").apply {
                     population = 10.0

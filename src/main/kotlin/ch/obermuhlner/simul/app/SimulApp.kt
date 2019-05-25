@@ -3,8 +3,10 @@ package ch.obermuhlner.simul.app
 import ch.obermuhlner.simul.client.service.RemoteWorldService
 import ch.obermuhlner.simul.server.RealWorldService
 import ch.obermuhlner.simul.server.SimulServer
-import ch.obermuhlner.simul.shared.domain.CountryDto
-import ch.obermuhlner.simul.shared.domain.RegionDto
+import ch.obermuhlner.simul.shared.domain.Country
+import ch.obermuhlner.simul.shared.domain.Region
+import ch.obermuhlner.simul.shared.domain.Simulation
+import ch.obermuhlner.simul.shared.domain.TaxAgricultureAction
 import ch.obermuhlner.simul.shared.service.WorldService
 import com.google.gson.Gson
 import org.springframework.boot.SpringApplication
@@ -17,7 +19,7 @@ enum class PrintFormat {
     Pretty
 }
 
-class SimulClient() {
+class SimulClient {
     private var worldService : WorldService = RealWorldService()
     private var printFormat = PrintFormat.Pretty
 
@@ -34,7 +36,7 @@ class SimulClient() {
             Command("--connect", 0) {
                 worldService = RemoteWorldService()
             },
-            Command("--standalone", 1) {
+            Command("--standalone", 0) {
                 worldService = RealWorldService()
             },
             Command("help", 0) {
@@ -61,8 +63,13 @@ class SimulClient() {
                 val regionId = arguments[0].toInt()
                 worldService.region(regionId)?.let { printRegion(it) }
             },
+            Command("tax-agriculture", 2) { arguments ->
+                val countryId = arguments[0].toInt()
+                val taxAgriculture= arguments[1].toDouble()
+                worldService.action(TaxAgricultureAction(countryId, taxAgriculture))
+            },
             Command("simulate", 0) {
-                worldService.simulate()
+                printSimulation(worldService.simulate())
             }
     )
 
@@ -89,22 +96,22 @@ class SimulClient() {
         }
     }
 
-    private fun printCountries(countries: List<CountryDto>) {
+    private fun printCountries(countries: List<Country>) {
         for (country in countries) {
             printCountry(country)
         }
     }
 
-    private fun printRegions(regions: List<RegionDto>) {
+    private fun printRegions(regions: List<Region>) {
         for (region in regions) {
             printRegion(region)
         }
     }
 
-    private fun printCountry(country: CountryDto) {
+    private fun printCountry(country: Country) {
         when (printFormat) {
             PrintFormat.Pretty -> {
-                println("Country: ${country.name}")
+                println("CountryModel: ${country.name}")
                 println("    id: ${country.id}")
                 println("    taxAgriculture: ${country.taxAgriculture}")
                 println("    taxManufacture: ${country.taxManufacture}")
@@ -119,12 +126,12 @@ class SimulClient() {
         }
     }
 
-    private fun printRegion(region: RegionDto) {
+    private fun printRegion(region: Region) {
         when (printFormat) {
             PrintFormat.Pretty -> {
-                println("Region: ${region.name}")
+                println("RegionModel: ${region.name}")
                 println("    id: ${region.id}")
-                println("    country: ${region.country}")
+                println("    countryModel: ${region.country}")
                 println("    population: ${region.population}")
                 println("    agricultureRatio: ${region.agricultureRatio}")
                 println("    agricultureStorag: ${region.agricultureStorage}")
@@ -136,6 +143,21 @@ class SimulClient() {
             }
             PrintFormat.ToString -> {
                 println(region)
+            }
+        }
+    }
+
+    private fun printSimulation(simulation: Simulation) {
+        when (printFormat) {
+            PrintFormat.Pretty -> {
+                println("Simulator:")
+                println("    ticks: ${simulation.ticks}")
+            }
+            PrintFormat.Json -> {
+                println(Gson().toJson(simulation))
+            }
+            PrintFormat.ToString -> {
+                println(simulation)
             }
         }
     }

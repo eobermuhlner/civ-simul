@@ -1,9 +1,9 @@
 package ch.obermuhlner.simul.client.javafx
 
-import ch.obermuhlner.simul.server.model.domain.Country
-import ch.obermuhlner.simul.server.model.domain.Region
-import ch.obermuhlner.simul.server.model.domain.World
-import ch.obermuhlner.simul.server.model.service.Simulation
+import ch.obermuhlner.simul.server.model.domain.CountryModel
+import ch.obermuhlner.simul.server.model.domain.RegionModel
+import ch.obermuhlner.simul.server.model.domain.WorldModel
+import ch.obermuhlner.simul.server.model.service.Simulator
 import ch.obermuhlner.simul.server.model.service.SimulationLoader
 import ch.obermuhlner.simul.server.model.service.WorldLoader
 import javafx.beans.property.ListProperty
@@ -13,11 +13,11 @@ import tornadofx.*
 class SimulView : View() {
     private val controller: SimulController by inject()
 
-    private val countryModel = CountryModel(controller.world.countries[0])
-    private val regionModel = RegionModel(controller.world.countries[0].regions[0])
+    private val countryModel = CountryModel(controller.worldModel.countryModels[0])
+    private val regionModel = RegionModel(controller.worldModel.countryModels[0].regionModels[0])
 
-    private val countries = controller.world.countries.asObservable()
-    private val regions = mutableListOf<Region>().asObservable()
+    private val countries = controller.worldModel.countryModels.asObservable()
+    private val regions = mutableListOf<RegionModel>().asObservable()
 
     override val root = borderpane {
         top = hbox {
@@ -40,7 +40,7 @@ class SimulView : View() {
 
                 selectionModel.selectedItemProperty().addListener { _, _, newCountry ->
                     regions.clear()
-                    regions.addAll(newCountry.regions)
+                    regions.addAll(newCountry.regionModels)
                 }
                 countryModel.rebindOnChange(this) {
                     item = it
@@ -58,7 +58,7 @@ class SimulView : View() {
             }
         }
         right = form {
-            fieldset("Country") {
+            fieldset("CountryModel") {
                 field ("Name") {
                     label(countryModel.name)
                 }
@@ -75,7 +75,7 @@ class SimulView : View() {
                     listview(countryModel.countriesWar)
                 }
             }
-            fieldset("Region") {
+            fieldset("RegionModel") {
                 field ("Name") {
                     label(regionModel.name)
                 }
@@ -99,30 +99,30 @@ class SimulView : View() {
     }
 }
 
-class CountryModel(country: Country) : ItemViewModel<Country>(country) {
-    var name = bind(Country::name)
-    var taxAcriculture = bind(Country::taxAgriculture, true)
-    var taxManufacture = bind(Country::taxManufacture, true)
-    var gold = bind(Country::gold)
-    var countriesWar = bind(Country::countriesWar) as ListProperty<Country>
+class CountryModel(countryModel: CountryModel) : ItemViewModel<CountryModel>(countryModel) {
+    var name = bind(CountryModel::name)
+    var taxAcriculture = bind(CountryModel::taxAgriculture, true)
+    var taxManufacture = bind(CountryModel::taxManufacture, true)
+    var gold = bind(CountryModel::gold)
+    var countriesWar = bind(CountryModel::countriesWar) as ListProperty<CountryModel>
 }
 
-class RegionModel(region: Region) : ItemViewModel<Region>(region) {
-    var name = bind(Region::name)
-    var population = bind (Region::population)
-    var agricultureRatio = bind(Region::agricultureRatio, true)
-    var agricultureStorage = bind(Region::agricultureStorage)
-    var gold = bind(Region::gold)
-    var luxury = bind(Region::luxury)
+class RegionModel(regionModel: RegionModel) : ItemViewModel<RegionModel>(regionModel) {
+    var name = bind(RegionModel::name)
+    var population = bind (RegionModel::population)
+    var agricultureRatio = bind(RegionModel::agricultureRatio, true)
+    var agricultureStorage = bind(RegionModel::agricultureStorage)
+    var gold = bind(RegionModel::gold)
+    var luxury = bind(RegionModel::luxury)
 }
 
 class SimulController : Controller() {
-    val world: World = WorldLoader().load()
+    val worldModel: WorldModel = WorldLoader().load()
 
-    private val simulation: Simulation = SimulationLoader().load()
+    private val simulator: Simulator = SimulationLoader().load()
 
     fun simulate() {
-        simulation.simulate(world)
+        simulator.simulate(worldModel)
     }
 }
 
