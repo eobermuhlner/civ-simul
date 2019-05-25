@@ -1,54 +1,67 @@
-package ch.obermuhlner.simul.client.cli
+package ch.obermuhlner.simul.app
 
 import ch.obermuhlner.simul.client.service.RemoteWorldService
+import ch.obermuhlner.simul.server.RealWorldService
+import ch.obermuhlner.simul.server.SimulServer
 import ch.obermuhlner.simul.shared.domain.CountryDto
 import ch.obermuhlner.simul.shared.domain.RegionDto
 import ch.obermuhlner.simul.shared.service.WorldService
 import com.google.gson.Gson
+import org.springframework.boot.SpringApplication
 
-class Command(val name: String, val argumentCount: Int, val block: (WorldService, List<String>) -> Unit)
+class Command(val name: String, val argumentCount: Int, val block: (List<String>) -> Unit)
 
 enum class PrintFormat {
-    Simple,
+    ToString,
     Json,
     Pretty
 }
 
-class SimulClient(val worldService : WorldService) {
+class SimulClient() {
+    private var worldService : WorldService = RealWorldService()
     private var printFormat = PrintFormat.Pretty
 
     private val commands: List<Command> = listOf(
-            Command("--pretty", 0) { _, _ ->
+            Command("--pretty", 0) {
                 printFormat = PrintFormat.Pretty
             },
-            Command("--json", 0) { _, _ ->
+            Command("--json", 0) {
                 printFormat = PrintFormat.Json
             },
-            Command("--simple", 0) { _, _ ->
-                printFormat = PrintFormat.Simple
+            Command("--tostring", 0) {
+                printFormat = PrintFormat.ToString
             },
-            Command("help", 0) { _, _ ->
+            Command("--connect", 0) {
+                worldService = RemoteWorldService()
+            },
+            Command("--standalone", 1) {
+                worldService = RealWorldService()
+            },
+            Command("help", 0) {
                 printHelp()
             },
-            Command("countries", 0) { worldService, _ ->
+            Command("server", 0) {
+                SpringApplication.run(SimulServer::class.java)
+            },
+            Command("countries", 0) {
                 printCountries(worldService.allCountries())
             },
-            Command("country", 1) { worldService, arguments ->
+            Command("country", 1) { arguments ->
                 val countryId = arguments[0].toInt()
                 worldService.country(countryId)?.let { printCountry(it) }
             },
-            Command("regions", 0) { worldService, _ ->
+            Command("regions", 0) {
                 printRegions(worldService.allRegions())
             },
-            Command("country-regions", 1) { worldService, arguments ->
+            Command("country-regions", 1) { arguments ->
                 val countryId = arguments[0].toInt()
                 printRegions(worldService.countryRegions(countryId))
             },
-            Command("region", 1) { worldService, arguments ->
+            Command("region", 1) { arguments ->
                 val regionId = arguments[0].toInt()
                 worldService.region(regionId)?.let { printRegion(it) }
             },
-            Command("simulate", 0) { worldService, _ ->
+            Command("simulate", 0) {
                 worldService.simulate()
             }
     )
@@ -65,7 +78,7 @@ class SimulClient(val worldService : WorldService) {
                     if (argumentIndex + command.argumentCount <= args.size) {
                         val commandArguments = args.slice(argumentIndex until (argumentIndex+command.argumentCount))
                         argumentIndex += command.argumentCount
-                        command.block(worldService, commandArguments)
+                        command.block(commandArguments)
                     } else {
                         println("Command $commandName expects ${command.argumentCount} arguments")
                     }
@@ -100,7 +113,7 @@ class SimulClient(val worldService : WorldService) {
             PrintFormat.Json -> {
                 println(Gson().toJson(country))
             }
-            PrintFormat.Simple -> {
+            PrintFormat.ToString -> {
                 println(country)
             }
         }
@@ -121,7 +134,7 @@ class SimulClient(val worldService : WorldService) {
             PrintFormat.Json -> {
                 println(Gson().toJson(region))
             }
-            PrintFormat.Simple -> {
+            PrintFormat.ToString -> {
                 println(region)
             }
         }
@@ -130,7 +143,7 @@ class SimulClient(val worldService : WorldService) {
     private fun printHelp() {
         for (command in commands) {
             println("COMMAND ${command.name}")
-            println("Takes ${command.argumentCount} arguments.")
+            println("    Takes ${command.argumentCount} arguments.")
             println()
         }
     }
@@ -138,5 +151,5 @@ class SimulClient(val worldService : WorldService) {
 
 
 fun main(args: Array<String>) {
-    SimulClient(RemoteWorldService()).execute(args)
+    SimulClient().execute(args)
 }
