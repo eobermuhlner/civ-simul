@@ -47,6 +47,9 @@ class SimulClient(val worldService : WorldService) {
             Command("region", 1) { worldService, arguments ->
                 val regionId = arguments[0].toInt()
                 worldService.region(regionId)?.let { printRegion(it) }
+            },
+            Command("simulate", 0) { worldService, _ ->
+                worldService.simulate()
             }
     )
 
@@ -137,6 +140,3 @@ class SimulClient(val worldService : WorldService) {
 fun main(args: Array<String>) {
     SimulClient(RemoteWorldService()).execute(args)
 }
-
-
-

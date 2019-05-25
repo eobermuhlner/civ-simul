@@ -11,4 +11,5 @@ interface WorldService {
     fun countryRegions(countryId: Int) : List<RegionDto>
     fun region(id: Int) : RegionDto?
 
+    fun simulate()
 }

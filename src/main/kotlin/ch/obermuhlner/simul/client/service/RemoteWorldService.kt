@@ -31,4 +31,8 @@ class RemoteWorldService : WorldService {
         val (_, _, result) = "http://localhost:8080/region/${regionId}".httpGet().responseObject(RegionDto.Deserializer())
         return result.get()
     }
+
+    override fun simulate() {
+        val (_, _, result) = "http://localhost:8080/simulate".httpGet().responseObject(RegionDto.Deserializer())
+    }
 }

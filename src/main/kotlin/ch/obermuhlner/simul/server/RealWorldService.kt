@@ -48,4 +48,9 @@ class RealWorldService(val simulation: Simulation = SimulationLoader().load(),
                 .map { RegionDto(it) }
                 .find { it.id == regionId }
     }
+
+    @GetMapping("/simulate")
+    override fun simulate() {
+        simulation.simulate(world)
+    }
 }
