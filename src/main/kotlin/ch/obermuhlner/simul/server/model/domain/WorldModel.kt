@@ -41,8 +41,17 @@ data class CountryModel(
         var taxManufacture: Double = 0.2,
         var gold: Double = 0.0,
         val regionModels: MutableList<RegionModel> = mutableListOf(),
-        val countriesWar: MutableList<CountryModel> = mutableListOf(),
-        val countriesAlly: MutableList<CountryModel> = mutableListOf()) {
+        val countrieModelsWar: MutableList<CountryModel> = mutableListOf(),
+        val countrieModelsAlly: MutableList<CountryModel> = mutableListOf()) {
+
+    val regionIds: List<Int>
+        get() = regionModels.map { it.id }
+
+    val countriesWarIds: List<Int>
+        get() = countrieModelsWar.map { it.id }
+
+    val countriesAllyIds: List<Int>
+        get() = countrieModelsAlly.map { it.id }
 
     fun addRegion(regionModel: RegionModel) {
         regionModels += regionModel
@@ -79,7 +88,7 @@ class WorldModel {
     }
 
     fun createCountry(name: String): CountryModel {
-        val country = CountryModel(regionModels.size, name)
+        val country = CountryModel(countryModels.size, name)
         countryModels += country
         return country
     }

@@ -16,7 +16,7 @@ class NoRandomizer : Randomizer {
 }
 
 class RandomRandomizer : Randomizer {
-    val random : Random = Random()
+    private val random : Random = Random()
 
     override fun gaussian(value: Double, stdDeviation: Double): Double {
         return random.nextGaussian() * stdDeviation * value + value
@@ -95,12 +95,12 @@ class Simulator(private val rules : List<Rule>) {
     }
 
     private fun executeAction(worldModel: WorldModel, action: Action) {
-        when(action) {
+        val dummy = when(action) {
             is DeclareWarAction -> {
                 val actor = worldModel.country(action.actorCountryId)
                 val other = worldModel.country(action.otherCountryId)
-                actor.countriesWar += other
-                other.countriesWar += actor
+                actor.countrieModelsWar += other
+                other.countrieModelsWar += actor
             }
             is ProposePeaceAction -> {
                 // TODO if peace is acceptable
@@ -109,12 +109,20 @@ class Simulator(private val rules : List<Rule>) {
             is AcceptPeaceAction -> {
                 val actor = worldModel.country(action.actorCountryId)
                 val other = worldModel.country(action.otherCountryId)
-                actor.countriesWar -= other
-                other.countriesWar -= actor
+                actor.countrieModelsWar -= other
+                other.countrieModelsWar -= actor
             }
             is TaxAgricultureAction -> {
                 val country = worldModel.country(action.countryId)
                 country.taxAgriculture = action.taxAgriculture
+            }
+            is TaxManufactureAction -> {
+                val country = worldModel.country(action.countryId)
+                country.taxAgriculture = action.taxManufacture
+            }
+            is AgricultureRatioAction -> {
+                val region = worldModel.region(action.regionId)
+                region.agricultureRatio = action.agricultureRatio
             }
         }
     }

@@ -3,6 +3,8 @@ package ch.obermuhlner.simul.client.service
 import ch.obermuhlner.simul.shared.domain.*
 import ch.obermuhlner.simul.shared.service.WorldService
 import com.github.kittinunf.fuel.*
+import com.github.kittinunf.fuel.core.ResponseDeserializable
+import com.github.kittinunf.fuel.core.isSuccessful
 import com.google.gson.Gson
 import org.slf4j.LoggerFactory
 
@@ -13,98 +15,93 @@ class RemoteWorldService(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun allCountries(): List<Country> {
-        val (request, response, result) = "http://$host:$port/countries"
-                .httpGet()
-                .responseObject(Country.ListDeserializer())
-        logger.trace("Request: {}", request)
-        logger.trace("Response: {}", response)
-        logger.trace("Result: {}", result)
-        return result.get()
+        return requestObject(
+                "http://$host:$port/world/countries",
+                Country.ListDeserializer())
     }
 
     override fun country(countryId: Int): Country {
-        val (request, response, result) = "http://$host:$port/country/$countryId"
-                .httpGet()
-                .responseObject(Country.Deserializer())
-        logger.trace("Request: {}", request)
-        logger.trace("Response: {}", response)
-        logger.trace("Result: {}", result)
-        return result.get()
+        return requestObject(
+                "http://$host:$port/world/country/$countryId",
+                Country.Deserializer())
     }
 
     override fun allRegions(): List<Region> {
-        val (request, response, result) = "http://$host:$port/regions"
-                .httpGet()
-                .responseObject(Region.ListDeserializer())
-        logger.trace("Request: {}", request)
-        logger.trace("Response: {}", response)
-        logger.trace("Result: {}", result)
-        return result.get()
-    }
-
-    override fun countryRegions(countryId: Int): List<Region> {
-        val (request, response, result) = "http://$host:$port/country/$countryId/regions"
-                .httpGet()
-                .responseObject(Region.ListDeserializer())
-        logger.trace("Request: {}", request)
-        logger.trace("Response: {}", response)
-        logger.trace("Result: {}", result)
-        return result.get()
+        return requestObject(
+                "http://$host:$port/world/regions",
+                Region.ListDeserializer())
     }
 
     override fun region(regionId: Int): Region {
-        val (request, response, result) = "http://$host:$port/region/$regionId"
-                .httpGet()
-                .responseObject(Region.Deserializer())
-        logger.trace("Request: {}", request)
-        logger.trace("Response: {}", response)
-        logger.trace("Result: {}", result)
-        return result.get()
+        return requestObject(
+                "http://$host:$port/world/region/$regionId",
+                Region.Deserializer())
+    }
+
+    override fun countryRegions(countryId: Int): List<Region> {
+        return requestObject(
+                "http://$host:$port/world/country/$countryId/regions",
+                Region.ListDeserializer())
     }
 
     override fun action(action: DeclareWarAction) {
-        val (request, response, result) = "http://$host:$port/action/declarewar/${action.actorCountryId}/${action.otherCountryId}"
-                .httpGet()
-                .response()
-        logger.trace("Request: {}", request)
-        logger.trace("Response: {}", response)
-        logger.trace("Result: {}", result)
+        requestNothing(
+                "http://$host:$port/world/action/declarewar/${action.actorCountryId}/${action.otherCountryId}")
     }
 
     override fun action(action: ProposePeaceAction) {
-        val (request, response, result) = "http://$host:$port/action/proposepeace/${action.actorCountryId}/${action.otherCountryId}"
-                .httpGet()
-                .response()
-        logger.trace("Request: {}", request)
-        logger.trace("Response: {}", response)
-        logger.trace("Result: {}", result)
+        requestNothing(
+                "http://$host:$port/world/action/proposepeace/${action.actorCountryId}/${action.otherCountryId}")
     }
 
     override fun action(action: AcceptPeaceAction) {
-        val (request, response, result) = "http://$host:$port/action/acceptpeace/${action.actorCountryId}/${action.otherCountryId}"
-                .httpGet()
-                .response()
-        logger.trace("Request: {}", request)
-        logger.trace("Response: {}", response)
-        logger.trace("Result: {}", result)
+        requestNothing(
+                "http://$host:$port/world/action/acceptpeace/${action.actorCountryId}/${action.otherCountryId}")
     }
 
     override fun action(action: TaxAgricultureAction) {
-        val (request, response, result) = "http://$host:$port/action/taxagriculture/${action.countryId}/${action.taxAgriculture}"
-                .httpGet()
-                .response()
-        logger.trace("Request: {}", request)
-        logger.trace("Response: {}", response)
-        logger.trace("Result: {}", result)
+        requestNothing(
+                "http://$host:$port/world/action/taxagriculture/${action.countryId}/${action.taxAgriculture}")
+    }
+
+    override fun action(action: TaxManufactureAction) {
+        requestNothing(
+                "http://$host:$port/world/action/taxmanufacture/${action.countryId}/${action.taxManufacture}")
+    }
+
+    override fun action(action: AgricultureRatioAction) {
+        requestNothing(
+                "http://$host:$port/world/action/agricultureratio/${action.regionId}/${action.agricultureRatio}")
     }
 
     override fun simulate(): Simulation {
-        val (request, response, result) = "http://localhost:8080/simulate"
+        return requestObject(
+                "http://$host:$port/world/simulate",
+                Simulation.Deserializer())
+    }
+
+    fun requestNothing(url: String) {
+        logger.debug("URL: {}", url)
+        val (request, response, result) = url
                 .httpGet()
-                .responseObject(Simulation.Deserializer())
-        logger.trace("Request: {}", request)
-        logger.trace("Response: {}", response)
-        logger.trace("Result: {}", result)
+                .response()
+        if (!response.isSuccessful) {
+            logger.warn("Request: {}", request)
+            logger.warn("Response: {}", response)
+            logger.warn("Result: {}", result)
+        }
+    }
+
+    fun <T : Any> requestObject(url: String, deserializer: ResponseDeserializable<T>): T {
+        logger.debug("URL: {}", url)
+        val (request, response, result) = url
+                .httpGet()
+                .responseObject(deserializer)
+        if (!response.isSuccessful) {
+            logger.warn("Request: {}", request)
+            logger.warn("Response: {}", response)
+            logger.warn("Result: {}", result)
+        }
         return result.get()
     }
 }

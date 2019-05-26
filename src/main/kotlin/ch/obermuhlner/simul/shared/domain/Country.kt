@@ -9,14 +9,16 @@ data class Country(
         val name: String,
         val taxAgriculture: Double,
         val taxManufacture: Double,
-        val gold: Double) {
+        val gold: Double,
+        val regions: List<Int>) {
 
     constructor(countryModel: CountryModel) : this(
             countryModel.id,
             countryModel.name,
             countryModel.taxAgriculture,
             countryModel.taxManufacture,
-            countryModel.gold)
+            countryModel.gold,
+            countryModel.regionIds)
 
     class ListDeserializer : ResponseDeserializable<List<Country>> {
         override fun deserialize(content: String): List<Country>

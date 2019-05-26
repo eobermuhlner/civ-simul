@@ -28,6 +28,8 @@ dependencies {
     implementation("com.github.kittinunf.fuel:fuel:2.1.0")
     implementation("com.github.kittinunf.fuel:fuel-gson:2.1.0")
     implementation("org.slf4j:slf4j-api:1.7.25")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
 }
 
 tasks.withType<KotlinCompile> {

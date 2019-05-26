@@ -1,12 +1,12 @@
 package ch.obermuhlner.simul.app
 
+import ch.obermuhlner.simul.client.service.RemoteAdminService
 import ch.obermuhlner.simul.client.service.RemoteWorldService
+import ch.obermuhlner.simul.server.RealAdminService
 import ch.obermuhlner.simul.server.RealWorldService
 import ch.obermuhlner.simul.server.SimulServer
-import ch.obermuhlner.simul.shared.domain.Country
-import ch.obermuhlner.simul.shared.domain.Region
-import ch.obermuhlner.simul.shared.domain.Simulation
-import ch.obermuhlner.simul.shared.domain.TaxAgricultureAction
+import ch.obermuhlner.simul.shared.domain.*
+import ch.obermuhlner.simul.shared.service.AdminService
 import ch.obermuhlner.simul.shared.service.WorldService
 import com.google.gson.Gson
 import org.springframework.boot.SpringApplication
@@ -19,8 +19,10 @@ enum class PrintFormat {
     Pretty
 }
 
-class SimulClient {
+class SimulApp {
+    private var adminService : AdminService = RealAdminService()
     private var worldService : WorldService = RealWorldService()
+
     private var printFormat = PrintFormat.Pretty
 
     private val commands: List<Command> = listOf(
@@ -35,9 +37,11 @@ class SimulClient {
             },
             Command("--connect", 0) {
                 worldService = RemoteWorldService()
+                adminService = RemoteAdminService()
             },
             Command("--standalone", 0) {
                 worldService = RealWorldService()
+                adminService = RealAdminService()
             },
             Command("help", 0) {
                 printHelp()
@@ -63,13 +67,26 @@ class SimulClient {
                 val regionId = arguments[0].toInt()
                 worldService.region(regionId)?.let { printRegion(it) }
             },
-            Command("tax-agriculture", 2) { arguments ->
+            Command("set-tax-agriculture", 2) { arguments ->
                 val countryId = arguments[0].toInt()
-                val taxAgriculture= arguments[1].toDouble()
-                worldService.action(TaxAgricultureAction(countryId, taxAgriculture))
+                val value = arguments[1].toDouble()
+                worldService.action(TaxAgricultureAction(countryId, value))
+            },
+            Command("set-tax-manufacture", 2) { arguments ->
+                val countryId = arguments[0].toInt()
+                val value = arguments[1].toDouble()
+                worldService.action(TaxManufactureAction(countryId, value))
+            },
+            Command("set-agriculture-ratio", 2) { arguments ->
+                val regionId = arguments[0].toInt()
+                val value = arguments[1].toDouble()
+                worldService.action(AgricultureRatioAction(regionId, value))
             },
             Command("simulate", 0) {
                 printSimulation(worldService.simulate())
+            },
+            Command("shutdown", 0) {
+                adminService.shutdown()
             }
     )
 
@@ -173,5 +190,5 @@ class SimulClient {
 
 
 fun main(args: Array<String>) {
-    SimulClient().execute(args)
+    SimulApp().execute(args)
 }
